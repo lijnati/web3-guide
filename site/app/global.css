@@ -16,6 +16,39 @@ html {
   --ledger-soft: color-mix(in oklab, #93a6ff 14%, transparent);
 }
 
+/* Hero terminal: the command types itself once, then the installer output appears. */
+@keyframes type-in {
+  from { width: 0; }
+  to { width: var(--chars); }
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+@keyframes line-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.typing {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: var(--chars);
+  animation: type-in 1.6s steps(var(--steps)) 0.4s both;
+}
+.caret {
+  animation: caret-blink 1s step-end infinite;
+}
+.reveal {
+  animation: line-in 0.35s ease-out var(--delay) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing,
+  .caret,
+  .reveal {
+    animation: none;
+  }
+}
+
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;

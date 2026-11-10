@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CopyCommand } from '@/components/copy-command';
+import { SkillInstall } from '@/components/skill-install';
 
 const blocks = [
   { href: '/docs/guide/plan', title: 'Plan', body: 'Decide what belongs on-chain and design the contract’s functions.' },
@@ -26,14 +26,12 @@ const chain = blocks.map((b, i) => ({
   parent: i === 0 ? '0x000000' : shortHash(blocks[i - 1].title),
 }));
 
-const agents = ['Claude Code', 'Codex', 'Cursor', 'GitHub Copilot', 'Gemini CLI', 'Windsurf', 'OpenCode', 'Cline'];
-
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ledger)]';
 
 export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6">
-      <section className="grid grid-cols-1 gap-8 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+      <section className="grid grid-cols-1 gap-10 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1.15fr_1fr] lg:items-center">
         <div className="flex flex-col gap-6">
           <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
             Build your own dApp on Ethereum, from first contract to live site.
@@ -58,10 +56,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <p className="text-sm leading-relaxed text-fd-muted-foreground lg:border-l lg:pl-6">
-          Written against Hardhat 3, Solidity 0.8.28, viem 2, wagmi 3 and Next.js 16. Every command
-          and code sample was run before it was published.
-        </p>
+        <SkillInstall />
       </section>
 
       <section aria-labelledby="chain-title" className="border-t py-16">
@@ -96,37 +91,11 @@ export default function HomePage() {
         </ol>
       </section>
 
-      <section
-        aria-labelledby="skill-title"
-        className="grid grid-cols-1 gap-8 border-t py-16 lg:grid-cols-[1fr_1.2fr] lg:items-center"
-      >
-        <div className="flex flex-col gap-4">
-          <h2 id="skill-title" className="text-2xl font-semibold tracking-tight">
-            Let your coding agent start the project
-          </h2>
-          <p className="max-w-[56ch] text-fd-muted-foreground">
-            The web3-dapp skill teaches your agent this guide’s setup. It scaffolds the Hardhat and
-            Next.js projects, writes and tests your contract, and wires up the wallet. Sepolia keys
-            stay with you.
-          </p>
-          <Link
-            href="/docs/agent-skill"
-            className={`w-fit text-sm font-medium text-[var(--ledger)] underline-offset-4 hover:underline ${focus}`}
-          >
-            How the skill works
-          </Link>
-        </div>
-        <div className="flex flex-col gap-3 rounded-xl bg-[var(--ledger-soft)] p-4 sm:p-6">
-          <CopyCommand command="npx skills add lijnati/web3-guide --skill web3-dapp" />
-          <p className="text-sm text-fd-muted-foreground">
-            Works with {agents.slice(0, -1).join(', ')} and {agents.at(-1)}, plus other agents that
-            support skills.
-          </p>
-        </div>
-      </section>
-
       <footer className="flex flex-col gap-2 border-t py-8 text-sm text-fd-muted-foreground sm:flex-row sm:justify-between">
-        <span>CSEC ASTU Blockchain Team</span>
+        <span>
+          CSEC ASTU Blockchain Team. Written for Hardhat 3, Solidity 0.8.28, viem 2, wagmi 3 and
+          Next.js 16.
+        </span>
         <Link href="/docs/setup" className={`hover:text-fd-foreground ${focus}`}>
           Set up your machine
         </Link>
