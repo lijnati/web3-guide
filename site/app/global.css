@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Ledger blue: the single accent, used for chain links and focus. */
+:root {
+  --ledger: #2944c7;
+  --ledger-soft: color-mix(in oklab, #2944c7 10%, transparent);
+}
+.dark {
+  --ledger: #93a6ff;
+  --ledger-soft: color-mix(in oklab, #93a6ff 14%, transparent);
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
