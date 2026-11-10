@@ -1,0 +1,12 @@
+{
+  "title": "CSEC Blockchain Web3 Guide",
+  "pages": [
+    "---Start here---",
+    "index",
+    "concepts",
+    "setup",
+    "agent-skill",
+    "---Build your dApp---",
+    "...guide"
+  ]
+}
