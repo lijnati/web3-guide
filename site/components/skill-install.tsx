@@ -6,11 +6,11 @@ import { useState, type CSSProperties } from 'react';
 
 // Agent ids accepted by `npx skills add -a <id>`.
 const agents = [
-  { id: null, label: 'All agents', target: 'Claude Code, Codex, Cursor, Copilot, Gemini CLI and more' },
+  { id: null, label: 'All agents', target: 'Claude Code, Codex, Cursor, Gemini CLI, OpenCode and more' },
   { id: 'claude-code', label: 'Claude Code', target: 'Claude Code' },
   { id: 'codex', label: 'Codex', target: 'Codex' },
   { id: 'cursor', label: 'Cursor', target: 'Cursor' },
-  { id: 'github-copilot', label: 'Copilot', target: 'GitHub Copilot' },
+  { id: 'gemini-cli', label: 'Gemini', target: 'Gemini CLI' },
   { id: 'opencode', label: 'OpenCode', target: 'OpenCode' },
 ] as const;
 
