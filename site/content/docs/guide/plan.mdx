@@ -1,41 +1,41 @@
 ---
 title: Plan your dApp
-description: Decide what belongs on-chain, and design the contract's interface.
+description: Decide what goes on the blockchain and design your contract's functions.
 ---
 
-A dApp is cheap to change in the frontend and expensive to change in the contract. Ten minutes of planning saves redeploys.
+Changing the website is easy. Changing a deployed contract is not: you have to deploy a new one. Plan a little first.
 
-## What goes on-chain?
+## What goes on the blockchain?
 
-Put something on-chain only if it needs to be **public, tamper-proof, or owned by users**. Everything else stays in the frontend or a normal backend.
+Only put something on-chain if it must be **public, impossible to fake, or owned by users**. Everything else stays in the website or a normal backend.
 
-| Good on-chain | Keep off-chain |
+| Put on-chain | Keep off-chain |
 | --- | --- |
-| Balances, ownership, votes, payments | Images, videos, long text (store a link or hash instead) |
-| Rules everyone must trust ("only the owner can…", "max 100 per wallet") | Search, sorting, filtering, analytics |
-| Records that must be permanent and public | Private data: on-chain data is **public to everyone** |
-| Small values: numbers, addresses, short strings | Anything that changes many times a second |
+| Balances, ownership, votes, payments | Images, videos, long text (save a link instead) |
+| Rules everyone must trust ("max 100 per wallet") | Search, sorting, filtering |
+| Records that must be permanent | Private data |
+| Small values: numbers, addresses, short text | Data that changes many times a second |
 
 <Callout type="warn" title="Nothing on-chain is private">
-  `private` in Solidity only stops other *contracts* from reading a variable. Anyone can still read it straight from the chain. Never store secrets, passwords or personal data.
+  Anyone can read everything on the blockchain, even variables marked `private`. Never store passwords, secrets or personal data.
 </Callout>
 
-## Design the interface first
+## Design the functions first
 
-Before writing Solidity, list your contract's functions the way you would design a REST API:
+List your contract's functions like you would plan a REST API:
 
-| Kind | Solidity | Costs gas? | Needs wallet? | Example |
+| Kind | In Solidity | Costs gas? | Needs a wallet? | Example |
 | --- | --- | --- | --- | --- |
-| Read | `view` / `pure` function, `public` variable | No | No | `value()`, `balanceOf(address)` |
-| Write | normal `external` function | Yes | Yes | `setValue(uint256)`, `vote(uint256)` |
-| Payable write | `external payable` | Yes + ETH sent | Yes | `buy()`, `donate()` |
+| Read | `view` function or `public` variable | No | No | `value()` |
+| Write | `external` function | Yes | Yes | `setValue(uint256)` |
+| Write + pay | `external payable` | Yes, plus the ETH sent | Yes | `buy()` |
 | Event | `event` + `emit` | Part of a write | — | `ValueChanged(by, newValue)` |
-| Error | `error` + `revert` | — | — | `ZeroValue()`, `NotOwner()` |
+| Error | `error` + `revert` | — | — | `ZeroValue()` |
 
-Also decide:
+Then answer three questions:
 
-- **Who may call each write?** Anyone, only the owner, or only some addresses.
-- **What should revert?** Each rule becomes a custom error and a test.
-- **What does the constructor need?** Initial values, an owner, token names and so on.
+- **Who can call each write?** Anyone, only the owner, or some addresses.
+- **When should a call fail?** Each rule becomes an error and a test.
+- **What does the contract need at the start?** These become constructor arguments.
 
-Next: [write your contracts →](/docs/guide/contracts)
+Next: [write your contract →](/docs/guide/contracts)

@@ -1,43 +1,16 @@
 ---
-title: Set up the frontend
-description: Create a Next.js app, install wagmi and viem, wire the providers, and connect the app to your contract's ABI and address.
+title: Connect the frontend
+description: Give the website your contract's ABI and address, and set up wagmi.
 ---
+
+Work in the `web/` folder you created in [Initialize the project](/docs/guide/init).
 
 <Steps>
 <Step>
 
-### Create the Next.js app
+### Copy the ABI into the website
 
-From `my-dapp` (next to `contracts`):
-
-```bash
-npx create-next-app@latest web --ts --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-npm --yes
-cd web
-npm install wagmi viem@2 @tanstack/react-query
-```
-
-| Package | Job |
-| --- | --- |
-| `viem` | Talks to the chain: encodes calls with the ABI, sends RPC requests, decodes errors |
-| `wagmi` | React hooks built on viem: `useConnection`, `useReadContract`, `useWriteContract`… |
-| `@tanstack/react-query` | Caching and loading state for those hooks. wagmi requires it. |
-
-Then open `tsconfig.json` and change `"target": "ES2017"` to `"target": "ES2020"`.
-
-**Why:** contract numbers are `bigint`, and you'll write literals like `0n`. Below ES2020, TypeScript fails with *"BigInt literals are not available when targeting lower than ES2020"*.
-
-<Callout title="wagmi v3 naming">
-  wagmi v3 renamed `useAccount` to `useConnection`. Older tutorials and most AI-generated code still use `useAccount`, which is deprecated.
-</Callout>
-
-</Step>
-<Step>
-
-### Export the ABI to the frontend
-
-**What:** a script in the contracts project that copies a compiled ABI into `web/lib` as a TypeScript constant.
-
-**Why `as const`:** wagmi and viem infer exact function names, arguments and return types from it. A typo in a function name becomes a compile error instead of a runtime failure.
+The ABI tells the website which functions your contract has. This script copies it from `contracts/` into `web/lib`:
 
 ```js title="contracts/scripts/export-abi.mjs"
 // Usage: node scripts/export-abi.mjs MyContract ../web/lib
@@ -62,20 +35,22 @@ writeFileSync(
 console.log(`Wrote ${artifact.abi.length} ABI items to ${outFile}`);
 ```
 
-From `contracts`, after compiling:
+Run it from `contracts/`, after compiling:
 
 ```bash
 node scripts/export-abi.mjs MyContract ../web/lib
 ```
 
-**Expected:** `Wrote 6 ABI items to ../web/lib/myContractAbi.ts`. The count depends on your contract. Run it again after **every** contract change, once for each contract the frontend uses.
+You should see `Wrote 6 ABI items to ../web/lib/myContractAbi.ts` (the number depends on your contract).
+
+The `as const` lets TypeScript catch a wrong function name before you run the app. **Run the script again after every contract change.**
 
 </Step>
 <Step>
 
-### Configure wagmi
+### Set up wagmi
 
-**What:** one config object listing your chains, how to reach each one (transports) and which wallets can connect (connectors).
+This tells wagmi which networks to use and how to connect wallets:
 
 ```ts title="web/lib/wagmi.ts"
 import { createConfig, http } from "wagmi";
@@ -100,10 +75,13 @@ declare module "wagmi" {
 }
 ```
 
-- `injected()` connects any browser-extension wallet: MetaMask, Rabby, Brave and others. For mobile wallets, add `walletConnect({ projectId })` with a free project ID from Reown.
-- `ssr: true` is required in Next.js to avoid hydration mismatches.
-- The `declare module` block makes every hook type-safe for *your* chains.
-- To use another chain (Base Sepolia, Arbitrum Sepolia…), import it from `wagmi/chains` and add it to both `chains` and `transports`. Add it to `networks` in `hardhat.config.ts` too.
+- `injected()` connects browser wallets like MetaMask, Rabby and Brave.
+- `ssr: true` is required in Next.js.
+- The `declare module` part gives you type checking in every hook.
+
+<Callout title="useAccount is now useConnection">
+  wagmi v3 renamed `useAccount` to `useConnection`. Older tutorials and AI-written code still use `useAccount`.
+</Callout>
 
 </Step>
 <Step>
@@ -131,14 +109,14 @@ export const myContract = {
 } as const;
 ```
 
-Spread `myContract` into every hook call. Including `chainId` pins reads and writes to the contract's chain, so reads keep working even when the user's wallet is on another network.
+Pass `...myContract` to every wagmi hook. Reads then work even when the user's wallet is on another network.
 
 </Step>
 <Step>
 
 ### Add the providers
 
-wagmi hooks need two React context providers. They use browser APIs, so they go in a client component:
+wagmi hooks need two providers around your app. They only run in the browser, so the file starts with `"use client"`:
 
 ```tsx title="web/app/providers.tsx"
 "use client";
@@ -160,7 +138,7 @@ export function Providers({ children }: { children: ReactNode }) {
 }
 ```
 
-Wrap the app in `app/layout.tsx`:
+Wrap the app with them in `app/layout.tsx`:
 
 ```tsx title="web/app/layout.tsx"
 import type { Metadata } from "next";
@@ -183,7 +161,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 </Step>
 <Step>
 
-### Set environment variables
+### Add the contract address
 
 ```bash title="web/.env.local"
 # 31337 = local Hardhat node, 11155111 = Sepolia
@@ -193,9 +171,8 @@ NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
 NEXT_PUBLIC_SEPOLIA_RPC_URL=
 ```
 
-- `NEXT_PUBLIC_*` values are compiled into the browser bundle. That's fine for addresses and chain IDs, which are public anyway. **Never put a private key in one.**
-- Next.js reads `.env.local` only at startup, so restart `npm run dev` after each change.
-- Commit a `.env.example` with the same keys and empty values, so teammates know what to set. The generated `.gitignore` ignores `.env*`, so add the line `!.env.example`.
+- `NEXT_PUBLIC_*` values are visible to anyone using the site. Addresses are public anyway. **Never put a private key here.**
+- Restart `npm run dev` after you change this file.
 
 </Step>
 </Steps>

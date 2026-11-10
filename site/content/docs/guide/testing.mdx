@@ -1,13 +1,13 @@
 ---
 title: Test your contract
-description: Write fast automated tests with node:test and viem, and cover every rule before you deploy.
+description: Check that every rule in your contract works before you deploy.
 ---
 
-**Why test first?** A deployed contract can't be edited. Tests run on an in-memory chain in seconds and cost nothing. A bug found after deployment means a redeploy, a new address and a frontend update.
+You can't edit a contract after you deploy it. Tests run on a fake blockchain in seconds and cost nothing, so find bugs here.
 
 ## Write a test file
 
-Create one test file per contract in `test/`:
+Create one test file per contract in `contracts/test/`:
 
 ```ts title="contracts/test/MyContract.ts"
 import assert from "node:assert/strict";
@@ -60,29 +60,28 @@ describe("MyContract", async function () {
 });
 ```
 
-## The tools you get
+## What each part does
 
 | Code | What it does |
 | --- | --- |
-| `network.create()` | Starts a fresh in-memory chain with 20 funded test accounts |
-| `viem.deployContract("Name", [args])` | Deploys a contract and returns a typed object |
-| `contract.read.fn()` / `contract.write.fn([args])` | Call functions. Names and types come from your ABI |
-| `viem.getWalletClients()` | The test accounts. Pass `{ account }` to call as someone else |
-| `viem.assertions.emitWithArgs(...)` | Assert that an event was emitted with these arguments |
-| `viem.assertions.revertWithCustomError(...)` | Assert a revert with a specific custom error |
-| `viem.assertions.revertWithCustomErrorWithArgs(...)` | The same, also checking the error's arguments |
+| `network.create()` | Starts a fake blockchain with 20 test accounts full of ETH |
+| `viem.deployContract("Name", [args])` | Deploys your contract |
+| `contract.read.fn()` / `contract.write.fn([args])` | Calls a function |
+| `viem.getWalletClients()` | The test accounts. Pass `{ account }` to call as a different user. |
+| `viem.assertions.emitWithArgs(...)` | Checks that an event was sent |
+| `viem.assertions.revertWithCustomError(...)` | Checks that a call failed with a specific error |
 
-Numbers come back as `bigint`, so write `0n` and `42n`, not `0` and `42`.
+Numbers are `bigint`, so write `42n`, not `42`.
 
 ## What to test
 
-For every write function, cover:
+For each function that changes data, test:
 
-1. **The happy path:** state changes as expected.
-2. **Every rule:** one test per `revert` or `require`.
-3. **Access control:** a non-owner is rejected, where that applies.
-4. **Events:** emitted with the right arguments.
-5. **Money:** balances before and after, for any `payable` function.
+1. **It works:** the data changes as expected.
+2. **Each rule:** one test for every `revert` or `require`.
+3. **Who can call it:** other users are blocked, if only the owner should call it.
+4. **Events:** sent with the right values.
+5. **Money:** balances before and after, for `payable` functions.
 
 ## Run the tests
 
@@ -90,7 +89,7 @@ For every write function, cover:
 npm test
 ```
 
-**Expected:**
+You should see:
 
 ```text
 Running node:test tests
@@ -105,12 +104,11 @@ Running node:test tests
 4 passing (4 nodejs)
 ```
 
-`hardhat test` compiles first, so there's no need to run `compile` separately. To run one file, use `npx hardhat test test/MyContract.ts`.
+`npm test` compiles first, so you don't need to compile separately.
 
 **If it fails:**
-- `Expected 0n but got 0` → compare against a `bigint` literal.
-- An error saying the artifact for your contract was not found → the name passed to `deployContract` must match the `contract` name in Solidity exactly, including case.
-- A custom-error assertion fails → check the error name and argument types.
-- The constructor needs arguments → pass them as the second parameter: `deployContract("MyContract", [42n])`.
+- `Expected 0n but got 0` → compare with a `bigint`, like `0n`.
+- Artifact not found → the name in `deployContract` must match the contract name exactly, including capital letters.
+- Your constructor needs values → pass them as the second argument: `deployContract("MyContract", [42n])`.
 
 Next: [deploy it →](/docs/guide/deploy)

@@ -1,66 +1,66 @@
 ---
 title: Welcome
-description: A practical guide to designing, building and deploying your own dApp on Ethereum, written for Web2 developers.
+description: Build your own dApp on Ethereum, step by step. For web developers who are new to Web3.
 ---
 
-This guide shows you how to build **your own** decentralized application, from an idea to a contract on Sepolia and a live frontend. It doesn't walk you through a fixed sample app. Each page explains one part of the stack, what it is for, how to set it up and how to tell it's working.
+This guide shows you how to build your own dApp: a smart contract on Ethereum and a website that uses it. If you've built a website before, you're ready.
 
-Code samples use placeholder names: `MyContract`, `value` and `setValue`. Replace them with your own contract, functions and arguments.
+The code uses example names: `MyContract`, `value` and `setValue`. Change them to your own.
 
-## How a dApp fits together
+## How a dApp works
 
 ```text
- Your Next.js app ──(wagmi + viem)──▶ RPC node ──▶ Ethereum (Sepolia)
-        │                                              ▲
-        └── asks the wallet to sign ──▶ MetaMask ──────┘
+ Your website ──(wagmi + viem)──▶ RPC server ──▶ Ethereum (Sepolia)
+      │                                              ▲
+      └── asks the wallet to approve ──▶ MetaMask ───┘
 ```
 
-- The **smart contract** is your backend. It holds the rules and the data.
-- The **frontend** reads from the contract for free and asks the user's **wallet** to sign anything that changes state.
-- **Hardhat** compiles, tests and deploys the contract. **wagmi** and **viem** connect the frontend to it.
+- The **smart contract** is your backend. It keeps the data and the rules.
+- The **website** reads the contract for free. To change data, it asks the user's **wallet** to approve.
+- **Hardhat** builds, tests and deploys the contract. **wagmi** and **viem** connect the website to it.
 
-## The path
+## The steps
 
 <Cards>
   <Card title="1. Initialize the project" href="/docs/guide/init">
-    Create the project folder, Git repository and layout.
+    Set up Hardhat for the contract and Next.js for the website.
   </Card>
   <Card title="2. Plan your dApp" href="/docs/guide/plan">
-    Decide what goes on-chain and design the contract's functions.
+    Decide what goes on the blockchain.
   </Card>
   <Card title="3. Write contracts" href="/docs/guide/contracts">
-    Set up Hardhat 3 and write Solidity.
+    Write your contract in Solidity.
   </Card>
   <Card title="4. Test" href="/docs/guide/testing">
-    Prove the rules work before spending gas.
+    Check every rule before you deploy.
   </Card>
   <Card title="5. Deploy" href="/docs/guide/deploy">
-    Use Ignition on a local chain, then on Sepolia.
+    Deploy locally, then to Sepolia.
   </Card>
   <Card title="6. Frontend" href="/docs/guide/frontend">
-    Set up Next.js, wagmi, the ABI and the contract address.
+    Connect the website to your contract.
   </Card>
   <Card title="7. Wallet" href="/docs/guide/wallet">
-    Connect, disconnect and switch chains.
+    Add a connect button.
   </Card>
   <Card title="8. Read & write" href="/docs/guide/read-write">
-    Handle reads, transactions, confirmations and errors.
+    Read data, send transactions, show errors.
   </Card>
   <Card title="9. Ship" href="/docs/guide/ship">
-    Build and deploy the frontend to Vercel.
+    Put your website online with Vercel.
   </Card>
 </Cards>
 
-New to blockchains? Read [Web3 for Web2 developers](/docs/concepts) first, then [set up your machine](/docs/setup).
+New to blockchain? Read [Web3 for Web2 developers](/docs/concepts) first, then [set up your computer](/docs/setup).
 
-## Stack
+## Tools
 
-| Tool | Version | Role |
+| Tool | Version | What it does |
 | --- | --- | --- |
-| Node.js | 22 or newer | Runs everything |
-| Hardhat | 3.x | Compile, test and deploy contracts |
-| Solidity | 0.8.28 | Contract language |
-| viem | 2.x | TypeScript library for Ethereum |
-| wagmi | 3.x | React hooks for wallets and contracts |
-| Next.js | 16.x | Frontend framework |
-| MetaMask | latest | Browser wallet |
+| Node.js | 22+ | Runs everything |
+| Hardhat | 3 | Builds, tests and deploys contracts |
+| Solidity | 0.8.28 | The contract language |
+| viem | 2 | Talks to Ethereum |
+| wagmi | 3 | React hooks for wallets and contracts |
+| Next.js | 16 | The website |
+| MetaMask | latest | The browser wallet |

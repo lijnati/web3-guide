@@ -1,56 +1,19 @@
 ---
 title: Initialize the project
-description: Create the project folder, start a Git repository, and learn the layout the rest of the guide builds.
+description: Create the dApp project. One folder for the smart contract (Hardhat), one for the website (Next.js + wagmi).
 ---
 
-Every later page adds files to one root folder. Create it once here, so contracts and frontend stay side by side.
+A dApp has two parts, kept side by side in one folder:
 
-## Project layout
+- **`contracts/`**: the smart contract. Built with **Hardhat**.
+- **`web/`**: the website. Built with **Next.js** and **wagmi**.
 
-Keep the contracts and the frontend in sibling folders. Each has its own dependencies:
+At the end of this page, both parts are installed and running. The next pages fill them in.
 
-<Files>
-  <Folder name="my-dapp" defaultOpen>
-    <Folder name="contracts" defaultOpen>
-      <Folder name="contracts">
-        <File name="MyContract.sol" />
-      </Folder>
-      <Folder name="test">
-        <File name="MyContract.ts" />
-      </Folder>
-      <Folder name="ignition">
-        <Folder name="modules">
-          <File name="MyContract.ts" />
-        </Folder>
-      </Folder>
-      <Folder name="scripts">
-        <File name="export-abi.mjs" />
-      </Folder>
-      <File name="hardhat.config.ts" />
-      <File name="package.json" />
-    </Folder>
-    <Folder name="web" defaultOpen>
-      <Folder name="app">
-        <File name="layout.tsx" />
-        <File name="providers.tsx" />
-        <File name="page.tsx" />
-      </Folder>
-      <Folder name="components" />
-      <Folder name="lib">
-        <File name="wagmi.ts" />
-        <File name="contract.ts" />
-        <File name="myContractAbi.ts" />
-        <File name="errors.ts" />
-      </Folder>
-      <File name=".env.local" />
-      <File name="package.json" />
-    </Folder>
-  </Folder>
-</Files>
+<Steps>
+<Step>
 
-You don't create these files now. [Write contracts](/docs/guide/contracts) sets up `contracts/` and [Frontend](/docs/guide/frontend) sets up `web/`.
-
-## Create the folder and repository
+### Create the project folder
 
 ```bash
 mkdir my-dapp
@@ -58,7 +21,7 @@ cd my-dapp
 git init
 ```
 
-Add a `.gitignore` before anything else, so secrets and generated files never reach Git:
+Create a `.gitignore` so secrets and generated files never go into Git:
 
 ```text title="my-dapp/.gitignore"
 node_modules
@@ -69,13 +32,134 @@ cache
 types
 ```
 
-**Expected:** `Initialized empty Git repository in .../my-dapp/.git/`.
+</Step>
+<Step>
 
-<Callout type="warn" title="Never commit keys">
-  A private key pushed to a public repository is drained within minutes. `.env*` in `.gitignore` keeps `.env.local` out, and Hardhat keeps its own secrets outside the project.
-</Callout>
+### Set up the contract project
 
-## How the pieces connect
+Hardhat is the tool that compiles, tests and deploys your contract. Install it in `contracts/`:
+
+```bash
+mkdir contracts
+cd contracts
+npm init -y
+npm pkg set type=module
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox-viem
+npm install --save-dev @nomicfoundation/hardhat-ignition viem typescript @types/node
+npm pkg set scripts.compile="hardhat build" scripts.test="hardhat test" scripts.node="hardhat node"
+```
+
+- `type=module` is required. Hardhat 3 only works with ES modules.
+- `hardhat-toolbox-viem` adds testing and deploying tools.
+- The last line adds `npm run compile`, `npm test` and `npm run node`.
+
+Create the Hardhat config:
+
+```ts title="contracts/hardhat.config.ts"
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import { configVariable, defineConfig } from "hardhat/config";
+
+export default defineConfig({
+  plugins: [hardhatToolboxViemPlugin],
+  solidity: {
+    version: "0.8.28",
+  },
+  networks: {
+    // `npx hardhat node` serves this chain at http://127.0.0.1:8545 (chain id 31337)
+    localhost: {
+      type: "http",
+      chainType: "l1",
+      url: "http://127.0.0.1:8545",
+    },
+    sepolia: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    },
+  },
+});
+```
+
+- **`plugins`**: Hardhat 3 only loads plugins listed here.
+- **`networks`**: where you can deploy. `localhost` is a test chain on your computer. `sepolia` is the public test network.
+- **`configVariable(...)`**: a secret you fill in later, when you [deploy to Sepolia](/docs/guide/deploy#deploy-to-sepolia). You don't need it to compile or test.
+
+Create a `tsconfig.json` so your editor understands the TypeScript files:
+
+```json title="contracts/tsconfig.json"
+{
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+    "noEmit": true
+  }
+}
+```
+
+**Check it:**
+
+```bash
+npx hardhat --version
+```
+
+You should see `3.x.x`.
+
+</Step>
+<Step>
+
+### Set up the website
+
+Go back to `my-dapp` and create a Next.js app called `web`:
+
+```bash
+cd ..
+npx create-next-app@latest web --ts --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-npm --yes
+cd web
+npm install wagmi viem@2 @tanstack/react-query
+```
+
+| Package | What it does |
+| --- | --- |
+| `viem` | Talks to the blockchain |
+| `wagmi` | React hooks for wallets and contracts, built on viem |
+| `@tanstack/react-query` | Handles loading and caching. wagmi needs it. |
+
+Open `web/tsconfig.json` and change `"target": "ES2017"` to `"target": "ES2020"`. Contract numbers are `bigint` (like `0n`), and older targets don't support them.
+
+**Check it:**
+
+```bash
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000). You should see the Next.js starter page. Stop it with `Ctrl+C`.
+
+</Step>
+</Steps>
+
+## What you have now
+
+```text
+my-dapp/
+├── .gitignore
+├── contracts/     Hardhat: the smart contract
+│   ├── hardhat.config.ts
+│   ├── tsconfig.json
+│   └── package.json
+└── web/           Next.js: the website
+    ├── app/
+    └── package.json
+```
+
+The next pages add the contract, its tests and deploy files to `contracts/`, and the wallet and contract code to `web/`.
+
+## How the two parts connect
 
 ```text
  contracts/MyContract.sol ──build──▶ ABI ──export──▶ web/lib/myContractAbi.ts ─┐
@@ -83,6 +167,11 @@ types
             └──deploy──▶ contract address ──▶ web/.env.local ───────────────────┘
 ```
 
-The frontend needs exactly two facts about your contract: its **ABI** (which functions exist) and its **address** (where it lives). If either is out of date, nothing works. Each time you change the contract, export the ABI again and update the address.
+The website needs two things from the contract:
+
+- the **ABI**: a list of the contract's functions
+- the **address**: where the contract lives on the blockchain
+
+Each time you change the contract, update both.
 
 Next: [plan your dApp →](/docs/guide/plan)

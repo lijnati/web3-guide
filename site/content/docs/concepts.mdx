@@ -1,56 +1,56 @@
 ---
 title: Web3 for Web2 developers
-description: The ten ideas you need before writing a line of Solidity, mapped to things you already know.
+description: The few ideas you need before you start, explained with things you already know.
 ---
 
-## The mental model
+## The big idea
 
-A dApp is a normal web app whose **backend is a smart contract**. Anyone can read that backend, and anyone can call it, but every change costs a small fee and must be signed by the user.
+A dApp is a normal website whose **backend is a smart contract**. Anyone can read it. Anyone can use it. But every change costs a small fee, and the user must approve it with their wallet.
 
-| You know (Web2) | Web3 equivalent | What changes |
+| You know (Web2) | In Web3 | What's different |
 | --- | --- | --- |
-| Backend API + database | **Smart contract** | Code and data live on the blockchain. Deployed code cannot be edited. |
-| User login | **Wallet** (MetaMask) | The user proves identity by signing with a private key. No passwords. |
-| User ID | **Address** (`0x5FbD…0aa3`) | A 20-byte public identifier, derived from the key. |
-| `GET` request | **Read** (`view` function) | Free, instant, needs no wallet. |
-| `POST` request | **Write** (transaction) | Costs gas, needs a wallet signature, takes seconds to confirm. |
-| API docs / OpenAPI | **ABI** | JSON that describes the contract's functions, so the frontend can call them. |
-| Server URL | **Contract address** + **RPC URL** | The address says *which* contract; the RPC is the server you talk to. |
-| Staging environment | **Testnet** (Sepolia) | A real network with free, worthless ETH. |
-| Server logs | **Events** + block explorer (Etherscan) | Public, permanent records of what happened. |
-| Database migration | **Redeploy** | You can't change a deployed contract. A fix means a new contract at a new address. |
+| Backend + database | **Smart contract** | Lives on the blockchain. Can't be edited after deploy. |
+| Login | **Wallet** (MetaMask) | Users sign with a key. No passwords. |
+| User ID | **Address** (`0x5FbD…0aa3`) | The user's public ID |
+| `GET` request | **Read** | Free and instant. No wallet needed. |
+| `POST` request | **Write** (transaction) | Costs a fee, needs the wallet, takes a few seconds |
+| API docs | **ABI** | A list of the contract's functions |
+| Server URL | **Contract address** + **RPC URL** | The address says *which* contract. The RPC is the server you talk to. |
+| Staging | **Testnet** (Sepolia) | A real network with free test money |
+| Server logs | **Events** + Etherscan | Public records of what happened |
+| Database migration | **Redeploy** | To fix a contract, you deploy a new one at a new address |
 
-## The words you will see
+## Words you'll see
 
-- **Gas:** the fee paid for a write, in ETH. On Sepolia it is paid in free test ETH from a faucet.
-- **Chain ID:** the number that identifies a network. Sepolia is `11155111`. A local Hardhat node is `31337`. Wallets use it to stop you sending a transaction to the wrong network.
-- **RPC URL:** an HTTPS endpoint that speaks Ethereum JSON-RPC. Alchemy, Infura and public nodes all provide them.
-- **Transaction hash:** the "tracking number" of a write. Your wallet returns it immediately; the transaction is *not done yet* at that point.
-- **Receipt:** proof that the transaction was mined into a block. It says whether the transaction succeeded or **reverted**.
-- **Revert:** the contract refused the call (like an HTTP 400). All its changes are undone, but the gas is still spent.
+- **Gas:** the fee for a write, paid in ETH. On Sepolia you use free test ETH.
+- **Chain ID:** the number of a network. Sepolia is `11155111`. Your local test chain is `31337`.
+- **RPC URL:** the web address of a server that talks to the blockchain. Alchemy and Infura give you one for free.
+- **Transaction hash:** the tracking number of a write. You get it right away, but the write isn't done yet.
+- **Receipt:** proof the write is done. It says if it worked or **reverted**.
+- **Revert:** the contract said no (like HTTP 400). Nothing changes, but the fee is still paid.
 
-## The lifecycle of a write
+## What happens when a user writes
 
-This is the flow your UI has to show, step by step:
+Your website should show each step:
 
 ```text
- user clicks "Sign"
+ user clicks "Save"
         │
         ▼
- 1. wallet popup opens ........ UI: "Confirm in wallet…"     (user can reject)
+ 1. wallet popup opens ........ "Confirm in wallet…"     (user can say no)
         │ user approves
         ▼
- 2. tx hash returned .......... UI: "Waiting for a block…"   (link to Etherscan)
-        │ ~12 s on Sepolia
+ 2. you get a hash ............ "Waiting for a block…"   (link to Etherscan)
+        │ about 12 seconds on Sepolia
         ▼
- 3. receipt arrives ........... UI: "Success!" or "Reverted: <reason>"
+ 3. receipt arrives ........... "Done!" or "Failed: <reason>"
         │
         ▼
- 4. re-read contract data ..... UI: new entry appears
+ 4. read the data again ....... the new value shows up
 ```
 
-Most beginner bugs come from treating step 2 as "done". [Read & write](/docs/guide/read-write) shows how to handle every step.
+A common mistake is treating step 2 as "done". [Read & write](/docs/guide/read-write) shows how to handle every step.
 
-<Callout type="warn" title="Private keys are passwords you can never reset">
-  Anyone who has your private key controls the wallet. Use a **separate MetaMask account with no real funds** for development, and never commit a key to Git or put it in a `NEXT_PUBLIC_*` variable.
+<Callout type="warn" title="A private key is a password you can never change">
+  Anyone with your private key owns your wallet. Use a **separate MetaMask account with no real money** for development. Never put a key in Git or in a `NEXT_PUBLIC_*` variable.
 </Callout>

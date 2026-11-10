@@ -1,10 +1,10 @@
 ---
-title: Set up your machine
-description: Install the tools, create a dev wallet, and get Sepolia test ETH.
+title: Set up your computer
+description: Install the tools, create a test wallet, and get free test ETH.
 ---
 
 <Callout type="warn" title="Get test ETH early">
-  Faucets can be slow or rate-limited. Request Sepolia ETH well before you need to deploy.
+  Faucets can be slow. Ask for test ETH well before you need it.
 </Callout>
 
 <Steps>
@@ -12,84 +12,75 @@ description: Install the tools, create a dev wallet, and get Sepolia test ETH.
 
 ### Install Node.js 22 or newer
 
-**Why:** Hardhat 3 and Next.js 16 both need a recent Node.js. Older versions fail with confusing syntax errors.
-
 Download the LTS version from [nodejs.org](https://nodejs.org), then check it:
 
 ```bash
 node -v
-npm -v
 ```
 
-**Expected:** `v22.x.x` or higher (`v24` is fine).
+You should see `v22` or higher.
 
-**If it fails:** if you see `v18` or `v20`, your old Node is still first on your `PATH`. Close every terminal, open a new one and check again. If you use `nvm`, run `nvm install 22 && nvm use 22`.
-
-</Step>
-<Step>
-
-### Install Git and an editor
-
-Install [Git](https://git-scm.com) and [VS Code](https://code.visualstudio.com). In VS Code, add the **Solidity** extension by Nomic Foundation to get syntax highlighting and inline compiler errors.
-
-```bash
-git --version
-```
+**Still see `v18` or `v20`?** Close all terminals and open a new one. If you use `nvm`, run `nvm install 22 && nvm use 22`.
 
 </Step>
 <Step>
 
-### Install MetaMask and create a dev account
+### Install Git and VS Code
 
-**Why:** MetaMask is the wallet your dApp connects to. It holds your keys and signs transactions.
-
-1. Install the extension from [metamask.io](https://metamask.io).
-2. Create a wallet and save the recovery phrase offline.
-3. Create a **second account** called `Dev`. Use only this account for development.
-4. Turn on test networks: open the network menu, enable **Show test networks**, then select **Sepolia**.
-
-**Expected:** MetaMask shows *Sepolia* and a balance of `0 SepoliaETH`.
+Install [Git](https://git-scm.com) and [VS Code](https://code.visualstudio.com). In VS Code, add the **Solidity** extension by Nomic Foundation.
 
 </Step>
 <Step>
 
-### Get Sepolia test ETH
+### Install MetaMask and make a test account
 
-**Why:** every write and deployment costs gas. On Sepolia, gas is paid with free test ETH.
+MetaMask is the wallet your dApp connects to.
 
-Copy your `Dev` address from MetaMask and request ETH from a faucet. Try them in order until one works:
+1. Install it from [metamask.io](https://metamask.io).
+2. Create a wallet. Write the recovery phrase down and keep it offline.
+3. Add a **second account** called `Dev`. Use only this one for development.
+4. In the network menu, turn on **Show test networks** and pick **Sepolia**.
 
-- [Google Cloud Web3 faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
-- [Alchemy Sepolia faucet](https://www.alchemy.com/faucets/ethereum-sepolia)
+You should see *Sepolia* and `0 SepoliaETH`.
+
+</Step>
+<Step>
+
+### Get free test ETH
+
+Every write costs a small fee. On Sepolia, you pay it with free test ETH.
+
+Copy your `Dev` address and paste it into a faucet. If one doesn't work, try the next:
+
+- [Google Cloud faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
+- [Alchemy faucet](https://www.alchemy.com/faucets/ethereum-sepolia)
 - [Infura faucet](https://www.infura.io/faucet/sepolia)
 
-**Expected:** 0.05 SepoliaETH or more after a minute. That is enough for dozens of deployments.
-
-**If it fails:** some faucets need a small mainnet balance or a login. Try the next one, or ask a teammate to send you 0.05 SepoliaETH.
+0.05 SepoliaETH is enough for many deploys.
 
 </Step>
 <Step>
 
-### Get an RPC URL (recommended)
+### Get an RPC URL
 
-**Why:** public RPCs are shared and rate-limited. During a demo, a free personal RPC is much more reliable.
+Public servers are slow and shared. A free personal one is more reliable.
 
-Create a free app on [Alchemy](https://www.alchemy.com) or [Infura](https://www.infura.io), choose **Ethereum Sepolia**, and copy the HTTPS URL. It looks like:
+Make a free app on [Alchemy](https://www.alchemy.com) or [Infura](https://www.infura.io), choose **Ethereum Sepolia**, and copy the HTTPS URL:
 
 ```text
 https://eth-sepolia.g.alchemy.com/v2/<your-key>
 ```
 
-Keep it somewhere private. You will use it when you [deploy to Sepolia](/docs/guide/deploy#deploy-to-sepolia).
+Keep it private. You'll use it when you [deploy to Sepolia](/docs/guide/deploy#deploy-to-sepolia).
 
 </Step>
 </Steps>
 
 ## Checklist
 
-- [ ] `node -v` prints v22 or newer
-- [ ] MetaMask installed with a separate `Dev` account
-- [ ] Sepolia selected, balance above 0
-- [ ] Sepolia RPC URL saved
+- [ ] `node -v` shows v22 or newer
+- [ ] MetaMask has a separate `Dev` account
+- [ ] Sepolia is selected and you have test ETH
+- [ ] You saved your Sepolia RPC URL
 
 Next: [initialize the project →](/docs/guide/init)

@@ -1,16 +1,16 @@
 ---
 title: Agent skill
-description: Install the web3-dapp skill so your coding agent can scaffold and build a dApp the way this guide does.
+description: Let your AI coding agent build a dApp the same way this guide does.
 ---
 
-The **web3-dapp** skill packs this guide into instructions a coding agent can follow. Ask your agent to "start a new dApp", and it will:
+The **web3-dapp** skill turns this guide into instructions for AI coding agents. Ask your agent to "start a new dApp" and it will:
 
-- set up Hardhat 3 and Next.js the same way this guide does
+- set up Hardhat 3 and Next.js like this guide
 - write and test your contract
-- wire up the wallet and the read/write UI
-- check each step with real commands (compile, test, lint, build) before moving on
+- add the wallet button and the read/write UI
+- run real checks (compile, test, lint, build) after each step
 
-It follows the open [Agent Skills](https://agentskills.io) format: a `SKILL.md` file with two reference files. It works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, Windsurf, OpenCode, Cline and other agents that support skills.
+It works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, Windsurf, OpenCode, Cline and other agents that support [Agent Skills](https://agentskills.io).
 
 ## Install
 
@@ -20,60 +20,57 @@ Run this in the folder where you'll build your dApp:
 npx skills add lijnati/web3-guide --skill web3-dapp
 ```
 
-The [skills CLI](https://github.com/vercel-labs/skills) detects which agents you have installed and copies the skill into each one's skills folder. Useful flags:
+It finds the agents you have and installs the skill for each. Useful flags:
 
-| Flag | Effect |
+| Flag | What it does |
 | --- | --- |
-| `-a claude-code` | Install for one agent only. Repeat it to name several. |
-| `-g` | Install for your user account, so it's available in every project |
-| `-y` | Skip the confirmation prompts |
+| `-a claude-code` | Install for one agent only |
+| `-g` | Install for all your projects |
+| `-y` | Skip the questions |
 
 <Accordions>
 <Accordion title="Install by hand">
 
 Copy the `skills/web3-dapp` folder from the [repository](https://github.com/lijnati/web3-guide/tree/main/skills/web3-dapp) into your agent's skills folder:
 
-| Agent | Project folder |
+| Agent | Folder |
 | --- | --- |
 | Claude Code | `.claude/skills/web3-dapp/` |
-| Cursor, GitHub Copilot, OpenCode, Cline and other agents that read the shared folder | `.agents/skills/web3-dapp/` |
-| Other agents | Use the CLI with `-a <agent>`. It knows each agent's path. |
+| Cursor, GitHub Copilot, OpenCode, Cline and others | `.agents/skills/web3-dapp/` |
 
-If your agent doesn't support skills, point it at the file directly: *"Read skills/web3-dapp/SKILL.md and follow it."*
+If your agent doesn't support skills, tell it: *"Read skills/web3-dapp/SKILL.md and follow it."*
 
 </Accordion>
 </Accordions>
 
 ## Use it
 
-Describe your idea in plain words. For example:
+Describe your idea in plain words:
 
 ```text
 Start a new dApp where students can register for events and the organizer
 can close registration. Use the web3-dapp skill.
 ```
 
-Most agents load the skill automatically when your request matches its description. In Claude Code, you can also run it directly with `/web3-dapp`.
+In Claude Code you can also type `/web3-dapp`.
 
 The agent will:
 
-1. Ask what the contract should store, what users can do, and who may do it.
-2. Create `contracts/` (Hardhat 3), write the contract and its tests, then run `npm test`.
-3. Deploy to a local chain with Ignition.
-4. Create `web/` (Next.js + wagmi), export the ABI, and build the wallet and contract UI.
+1. Ask what the contract should store, what users can do, and who can do it.
+2. Create `contracts/`, write the contract and tests, and run them.
+3. Deploy to a local chain.
+4. Create `web/`, connect it to the contract, and build the wallet and contract UI.
 5. Run lint and a production build.
-6. Hand the Sepolia deployment back to you, because it needs your private key and keystore password.
+6. Leave the Sepolia deploy to you, because it needs your private key.
 
-<Callout type="warn" title="You stay in charge of secrets">
-  The skill tells agents never to run keystore commands, handle private keys or commit `.env.local`. Deploy to Sepolia yourself by following [Deploy your contract](/docs/guide/deploy#deploy-to-sepolia).
+<Callout type="warn" title="You keep your secrets">
+  The skill tells agents never to touch private keys or commit `.env.local`. Deploy to Sepolia yourself with [Deploy your contract](/docs/guide/deploy#deploy-to-sepolia).
 </Callout>
 
 ## What's inside
 
-| File | Contents |
+| File | What it has |
 | --- | --- |
-| `SKILL.md` | The workflow, the checks to run after each step, the rules that prevent common failures, and when the work counts as done |
-| `references/contracts.md` | Hardhat config, contract skeleton, tests, Ignition module, ABI export script |
-| `references/frontend.md` | wagmi config, providers, wallet button, read/write component, error handling |
-
-The templates match the code in this guide, and both were tested against a local Hardhat chain.
+| `SKILL.md` | The steps, the checks after each step, and the rules |
+| `references/contracts.md` | Hardhat config, contract, tests, deploy file, ABI script |
+| `references/frontend.md` | wagmi setup, providers, wallet button, read/write UI, errors |

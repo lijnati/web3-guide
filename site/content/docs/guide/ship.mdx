@@ -1,14 +1,14 @@
 ---
 title: Ship it
-description: Point the frontend at Sepolia, build for production, and deploy to Vercel.
+description: Point the website at Sepolia and put it online with Vercel.
 ---
 
 <Steps>
 <Step>
 
-### Point the frontend at Sepolia
+### Point the website at Sepolia
 
-After [deploying to Sepolia](/docs/guide/deploy#deploy-to-sepolia), update `web/.env.local`:
+After you [deploy to Sepolia](/docs/guide/deploy#deploy-to-sepolia), update `web/.env.local`:
 
 ```bash title="web/.env.local"
 NEXT_PUBLIC_CHAIN_ID=11155111
@@ -16,27 +16,27 @@ NEXT_PUBLIC_CONTRACT_ADDRESS=0x…your Sepolia address…
 NEXT_PUBLIC_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
 ```
 
-Restart `npm run dev`, switch MetaMask to Sepolia, and run through every state once on the real network.
+Restart `npm run dev`, switch MetaMask to Sepolia, and try everything once.
 
-<Callout title="Is an RPC key in NEXT_PUBLIC safe?">
-  Anyone who opens your site can see it. A free-tier key is acceptable for a demo or prototype. For anything long-lived, restrict the key to your domain in the provider's dashboard, or leave the variable empty to use the public RPC.
+<Callout title="Is it safe to put the RPC key here?">
+  Anyone using your site can see it. A free key is fine for a demo. For a real project, limit the key to your domain in the Alchemy or Infura dashboard.
 </Callout>
 
 </Step>
 <Step>
 
-### Build locally
+### Build it on your computer
 
 ```bash
 npm run lint
 npm run build
 ```
 
-**Expected:** `✓ Compiled successfully`, then a route table. Fix errors here, where builds take seconds, rather than on Vercel.
+You should see `✓ Compiled successfully`. Fix errors here, it's faster than on Vercel.
 
 **If it fails:**
-- A type error on `functionName` or `args` → the ABI is stale. Run the export script again.
-- `Module not found: @/lib/myContractAbi` → the ABI file was never generated. It's generated but must be **committed**.
+- Type error on `functionName` or `args` → the ABI is old. Export it again.
+- `Module not found: @/lib/myContractAbi` → the ABI file isn't committed.
 
 </Step>
 <Step>
@@ -57,32 +57,32 @@ Commit `contracts/ignition/deployments/` and `web/lib/*Abi.ts`. Never commit `.e
 
 ### Deploy to Vercel
 
-1. At [vercel.com/new](https://vercel.com/new), import the repository.
-2. Set **Root Directory** to `web`. This is easy to miss, and the build fails without it.
-3. Add the environment variables from `.env.local`: `NEXT_PUBLIC_CHAIN_ID`, `NEXT_PUBLIC_CONTRACT_ADDRESS` and, optionally, `NEXT_PUBLIC_SEPOLIA_RPC_URL`.
+1. Go to [vercel.com/new](https://vercel.com/new) and import your repository.
+2. Set **Root Directory** to `web`. The build fails without this.
+3. Add the variables from `.env.local`.
 4. Click **Deploy**.
 
-**Expected:** a `https://<project>.vercel.app` URL where reads load even without a wallet.
+You get a `https://<project>.vercel.app` link. Data should load even without a wallet.
 
-`NEXT_PUBLIC_*` values are baked in **at build time**. After editing them in Vercel, go to *Deployments → ⋯ → Redeploy*.
+Changed a variable in Vercel? Redeploy: *Deployments → ⋯ → Redeploy*.
 
 </Step>
 </Steps>
 
 ## Launch checklist
 
-- [ ] All contract tests pass
-- [ ] Contract deployed to Sepolia and visible on Etherscan
-- [ ] ABI exported **after** the last contract change
-- [ ] Frontend env vars point to the **current** Sepolia address and chain `11155111`
-- [ ] `npm run build` passes locally
-- [ ] Vercel: Root Directory `web`, env vars set, redeployed after changes
-- [ ] The live URL loads data in a private window with no wallet
-- [ ] A full write round-trip works on the live site with MetaMask
-- [ ] No private keys in Git history
+- [ ] All tests pass
+- [ ] Contract is on Sepolia and shows on Etherscan
+- [ ] ABI exported after the last contract change
+- [ ] Website uses the latest Sepolia address and chain `11155111`
+- [ ] `npm run build` works on your computer
+- [ ] Vercel: Root Directory is `web`, variables are set
+- [ ] The live site loads data in a private window, with no wallet
+- [ ] A write works on the live site with MetaMask
+- [ ] No private keys in Git
 
-## Where to go next
+## What next
 
-- **Verify your contract** on Etherscan so others can read the source. Hardhat's `ignition deploy` accepts a `--verify` flag once an Etherscan API key is configured; see the verification guide in the [Hardhat docs](https://hardhat.org/docs).
-- **Use audited building blocks** for tokens, NFTs and access control: [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts).
-- **Go deeper** in the official docs: [Hardhat](https://hardhat.org/docs), [wagmi](https://wagmi.sh), [viem](https://viem.sh), [Next.js](https://nextjs.org/docs).
+- **Verify your contract** on Etherscan so people can read its code. See the [Hardhat docs](https://hardhat.org/docs).
+- **Use tested code** for tokens, NFTs and permissions: [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts).
+- **Learn more:** [Hardhat](https://hardhat.org/docs), [wagmi](https://wagmi.sh), [viem](https://viem.sh), [Next.js](https://nextjs.org/docs).

@@ -2,15 +2,15 @@ import Link from 'next/link';
 import { SkillInstall } from '@/components/skill-install';
 
 const blocks = [
-  { href: '/docs/guide/init', title: 'Initialize', body: 'Create the project folder, Git repo and contracts/web layout.' },
-  { href: '/docs/guide/plan', title: 'Plan', body: 'Decide what belongs on-chain and design the contract’s functions.' },
-  { href: '/docs/guide/contracts', title: 'Write contracts', body: 'Set up Hardhat 3 and write Solidity with events and custom errors.' },
-  { href: '/docs/guide/testing', title: 'Test', body: 'Cover every rule with node:test and viem before spending gas.' },
-  { href: '/docs/guide/deploy', title: 'Deploy', body: 'Ship with Ignition, locally first, then to Sepolia.' },
-  { href: '/docs/guide/frontend', title: 'Frontend', body: 'Wire Next.js to your ABI and address with wagmi.' },
-  { href: '/docs/guide/wallet', title: 'Wallet', body: 'Connect MetaMask, avoid hydration errors, switch chains.' },
-  { href: '/docs/guide/read-write', title: 'Read & write', body: 'Track transactions to confirmation and explain every error.' },
-  { href: '/docs/guide/ship', title: 'Ship', body: 'Build for production and go live on Vercel.' },
+  { href: '/docs/guide/init', title: 'Initialize', body: 'Set up Hardhat for the contract and Next.js for the website.' },
+  { href: '/docs/guide/plan', title: 'Plan', body: 'Decide what goes on the blockchain.' },
+  { href: '/docs/guide/contracts', title: 'Write contracts', body: 'Write your contract in Solidity.' },
+  { href: '/docs/guide/testing', title: 'Test', body: 'Check every rule before you deploy.' },
+  { href: '/docs/guide/deploy', title: 'Deploy', body: 'Deploy locally, then to Sepolia.' },
+  { href: '/docs/guide/frontend', title: 'Frontend', body: 'Connect the website to your contract.' },
+  { href: '/docs/guide/wallet', title: 'Wallet', body: 'Add a connect button.' },
+  { href: '/docs/guide/read-write', title: 'Read & write', body: 'Read data, send transactions, show errors.' },
+  { href: '/docs/guide/ship', title: 'Ship', body: 'Put your website online with Vercel.' },
 ];
 
 // Deterministic short "hash" per step, so each block can point at its parent.
@@ -38,9 +38,8 @@ export default function HomePage() {
             Build your own dApp on Ethereum, from first contract to live site.
           </h1>
           <p className="max-w-[60ch] text-lg text-fd-muted-foreground text-pretty">
-            A practical guide for Web2 developers. Design a smart contract, test it, deploy it to
-            Sepolia, and connect a Next.js frontend that handles wallets, transactions and errors
-            properly.
+            A step-by-step guide for web developers. Write a smart contract, test it, put it on
+            Sepolia, and build a website that talks to it.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -98,7 +97,7 @@ export default function HomePage() {
           Next.js 16.
         </span>
         <Link href="/docs/setup" className={`hover:text-fd-foreground ${focus}`}>
-          Set up your machine
+          Set up your computer
         </Link>
       </footer>
     </main>

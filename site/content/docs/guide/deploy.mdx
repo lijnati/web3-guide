@@ -1,11 +1,11 @@
 ---
 title: Deploy your contract
-description: Describe deployments with Hardhat Ignition, deploy to a local chain, then to Sepolia with safely stored secrets.
+description: Deploy your contract to a local test chain, then to the Sepolia test network.
 ---
 
-## Write an Ignition module
+## Describe the deployment
 
-**What:** a file that describes *what* to deploy. Ignition handles *how*: sending transactions, waiting for confirmations, and remembering what's already deployed, so an interrupted deploy can resume.
+Hardhat **Ignition** deploys contracts for you. You write a small file that says *what* to deploy:
 
 ```ts title="contracts/ignition/modules/MyContract.ts"
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
@@ -17,17 +17,17 @@ export default buildModule("MyContractModule", (m) => {
 });
 ```
 
-- `m.contract("Name", [args])` deploys a contract with constructor arguments.
-- `m.getParameter(name, default)` lets you change arguments per deployment without editing code.
-- To deploy several contracts, call `m.contract` once for each. You can pass one contract as an argument to another, and Ignition deploys them in the right order.
+- `m.contract("Name", [args])` deploys a contract with its constructor values.
+- `m.getParameter(name, default)` lets you change those values without editing code.
+- More than one contract? Call `m.contract` once for each.
 
-Create a parameters file. The deploy scripts below read it, so it must exist. Write `bigint` values as strings ending in `n`:
+Put the constructor values in a parameters file. Write `bigint` values as text ending in `n`:
 
 ```json title="contracts/ignition/parameters.json"
 { "MyContractModule": { "initialValue": "42n" } }
 ```
 
-Add deploy scripts to `package.json`:
+Add two deploy commands to `contracts/package.json`:
 
 ```json title="contracts/package.json"
 "deploy:local": "hardhat ignition deploy ignition/modules/MyContract.ts --network localhost --parameters ignition/parameters.json",
@@ -36,7 +36,7 @@ Add deploy scripts to `package.json`:
 
 ## Deploy to a local chain
 
-**Why:** a local chain mines instantly, gives you unlimited free ETH and resets on restart. Use it while you build the frontend.
+A local chain runs on your computer. It's instant, free, and resets when you stop it. Use it while you build the website.
 
 <Steps>
 <Step>
@@ -49,10 +49,10 @@ In **terminal 1**:
 npm run node
 ```
 
-**Expected:** `Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/`, followed by 20 accounts and their private keys. Leave it running.
+You should see `Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/` and 20 test accounts. Leave it running.
 
 <Callout type="warn">
-  These keys are public and identical on every machine. Never send real funds to them.
+  These test keys are public. Never send real money to them.
 </Callout>
 
 </Step>
@@ -66,7 +66,7 @@ In **terminal 2**:
 npm run deploy:local
 ```
 
-**Expected:**
+You should see:
 
 ```text
 [ MyContractModule ] successfully deployed 🚀
@@ -76,11 +76,9 @@ Deployed Addresses
 MyContractModule#MyContract - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
-The first contract deployed on a fresh local chain is always at `0x5FbDB2315678afecb367f032d93F642f64180aa3`.
-
 **If it fails:**
-- `ECONNREFUSED 127.0.0.1:8545` → the node in terminal 1 isn't running.
-- Restarted the node? The chain is wiped, so deploy again.
+- `ECONNREFUSED 127.0.0.1:8545` → the chain in terminal 1 isn't running.
+- You restarted the chain → it was wiped. Deploy again.
 
 </Step>
 </Steps>
@@ -90,20 +88,20 @@ The first contract deployed on a fresh local chain is always at `0x5FbDB2315678a
 <Steps>
 <Step>
 
-### Export a throwaway private key
+### Get your private key
 
-In MetaMask, select your **Dev** account, then ⋮ → *Account details* → *Show private key*.
+In MetaMask, pick your **Dev** account, then ⋮ → *Account details* → *Show private key*.
 
-<Callout type="error" title="Testnet-only account">
-  Use an account that holds only test ETH. Anyone with this key controls the account.
+<Callout type="error" title="Use a test-only account">
+  Only use an account with test ETH. Anyone with this key controls the account.
 </Callout>
 
 </Step>
 <Step>
 
-### Store secrets in the Hardhat keystore
+### Save your secrets in the Hardhat keystore
 
-**Why:** the keystore encrypts secrets in your home folder, outside the repository, so you can't commit them by accident. `configVariable("SEPOLIA_RPC_URL")` in the config reads from it.
+The keystore saves secrets encrypted, outside your project, so you can't push them to Git by accident.
 
 ```bash
 npx hardhat keystore set SEPOLIA_RPC_URL
@@ -111,12 +109,12 @@ npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 npx hardhat keystore list
 ```
 
-The first command asks you to create a keystore password. **Expected** from `list`: both names, without their values.
+The first command asks you to pick a password. `list` should show both names.
 
 <Accordions>
-<Accordion title="Alternative: environment variables">
+<Accordion title="Or use environment variables">
 
-`configVariable` also reads environment variables with the same name. They last only for the current terminal:
+These only last until you close the terminal:
 
 <Tabs items={["macOS / Linux", "Windows PowerShell"]}>
 <Tab value="macOS / Linux">
@@ -150,23 +148,23 @@ npm test
 npm run deploy:sepolia
 ```
 
-Confirm the network when Ignition asks, and enter your keystore password.
+Confirm the network and enter your keystore password.
 
-**Expected,** after 15–60 seconds: `successfully deployed 🚀` and your contract's address. Ignition also writes it to `ignition/deployments/chain-11155111/deployed_addresses.json`. Commit that folder so your team can find the address.
+After 15–60 seconds you should see `successfully deployed 🚀` and your contract's address. Open `https://sepolia.etherscan.io/address/<your address>` to see it on the blockchain.
 
-Open `https://sepolia.etherscan.io/address/<your address>` to see the contract creation.
+The address is also saved in `ignition/deployments/chain-11155111/deployed_addresses.json`. Commit this folder so your team can find it.
 
 **If it fails:**
-- `insufficient funds` → the key's account has no Sepolia ETH. Check that you exported the account you funded.
-- Timeouts or `429 Too Many Requests` → use your own Alchemy or Infura RPC URL.
-- Interrupted → run the same command again. Ignition resumes instead of deploying twice.
-- `Nothing new to deploy` after you changed the contract → add `--reset` to deploy a fresh copy at a new address.
+- `insufficient funds` → this account has no Sepolia ETH. Check you exported the right account.
+- Timeout or `429 Too Many Requests` → use your own Alchemy or Infura RPC URL.
+- It stopped halfway → run the same command again. It continues where it stopped.
+- `Nothing new to deploy` after changing the contract → add `--reset` to deploy a new copy.
 
 </Step>
 </Steps>
 
-<Callout title="Every contract change means a new address">
-  Changed the contract? Run **test → deploy → export the ABI → update the address** in the frontend. A stale ABI or address is the most common reason a dApp suddenly stops working.
+<Callout title="Changed the contract?">
+  Every change means a new address. Always do: **test → deploy → export the ABI → update the address** in the website.
 </Callout>
 
-Next: [set up the frontend →](/docs/guide/frontend)
+Next: [connect the frontend →](/docs/guide/frontend)
