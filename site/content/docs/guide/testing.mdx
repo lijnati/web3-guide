@@ -1,0 +1,116 @@
+---
+title: Test your contract
+description: Write fast automated tests with node:test and viem, and cover every rule before you deploy.
+---
+
+**Why test first?** A deployed contract can't be edited. Tests run on an in-memory chain in seconds and cost nothing. A bug found after deployment means a redeploy, a new address and a frontend update.
+
+## Write a test file
+
+Create one test file per contract in `test/`:
+
+```ts title="contracts/test/MyContract.ts"
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { network } from "hardhat";
+
+const { viem } = await network.create();
+
+describe("MyContract", async function () {
+  it("stores the initial value and the owner", async function () {
+    const [deployer] = await viem.getWalletClients();
+    const myContract = await viem.deployContract("MyContract", [42n]);
+
+    assert.equal(await myContract.read.value(), 42n);
+    assert.equal(
+      (await myContract.read.owner()).toLowerCase(),
+      deployer.account.address.toLowerCase(),
+    );
+  });
+
+  it("updates the value and emits ValueChanged", async function () {
+    const [deployer] = await viem.getWalletClients();
+    const myContract = await viem.deployContract("MyContract", [1n]);
+
+    await viem.assertions.emitWithArgs(
+      myContract.write.setValue([7n]),
+      myContract,
+      "ValueChanged",
+      [deployer.account.address, 7n],
+    );
+    assert.equal(await myContract.read.value(), 7n);
+  });
+
+  it("reverts with ZeroValue for 0", async function () {
+    const myContract = await viem.deployContract("MyContract", [1n]);
+    await viem.assertions.revertWithCustomError(
+      myContract.write.setValue([0n]),
+      myContract,
+      "ZeroValue",
+    );
+  });
+
+  it("lets any account call setValue", async function () {
+    const [, other] = await viem.getWalletClients();
+    const myContract = await viem.deployContract("MyContract", [1n]);
+
+    await myContract.write.setValue([5n], { account: other.account });
+    assert.equal(await myContract.read.value(), 5n);
+  });
+});
+```
+
+## The tools you get
+
+| Code | What it does |
+| --- | --- |
+| `network.create()` | Starts a fresh in-memory chain with 20 funded test accounts |
+| `viem.deployContract("Name", [args])` | Deploys a contract and returns a typed object |
+| `contract.read.fn()` / `contract.write.fn([args])` | Call functions. Names and types come from your ABI |
+| `viem.getWalletClients()` | The test accounts. Pass `{ account }` to call as someone else |
+| `viem.assertions.emitWithArgs(...)` | Assert that an event was emitted with these arguments |
+| `viem.assertions.revertWithCustomError(...)` | Assert a revert with a specific custom error |
+| `viem.assertions.revertWithCustomErrorWithArgs(...)` | The same, also checking the error's arguments |
+
+Numbers come back as `bigint`, so write `0n` and `42n`, not `0` and `42`.
+
+## What to test
+
+For every write function, cover:
+
+1. **The happy path:** state changes as expected.
+2. **Every rule:** one test per `revert` or `require`.
+3. **Access control:** a non-owner is rejected, where that applies.
+4. **Events:** emitted with the right arguments.
+5. **Money:** balances before and after, for any `payable` function.
+
+## Run the tests
+
+```bash
+npm test
+```
+
+**Expected:**
+
+```text
+Running node:test tests
+
+  MyContract
+    ✔ stores the initial value and the owner
+    ✔ updates the value and emits ValueChanged
+    ✔ reverts with ZeroValue for 0
+    ✔ lets any account call setValue
+
+
+4 passing (4 nodejs)
+```
+
+`hardhat test` compiles first, so there's no need to run `compile` separately. To run one file, use `npx hardhat test test/MyContract.ts`.
+
+**If it fails:**
+- `Expected 0n but got 0` → compare against a `bigint` literal.
+- An error saying the artifact for your contract was not found → the name passed to `deployContract` must match the `contract` name in Solidity exactly, including case.
+- A custom-error assertion fails → check the error name and argument types.
+- The constructor needs arguments → pass them as the second parameter: `deployContract("MyContract", [42n])`.
+
+Next: [deploy it →](/docs/guide/deploy)

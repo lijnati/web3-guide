@@ -1,0 +1,13 @@
+{
+  "title": "Build your dApp",
+  "pages": [
+    "plan",
+    "contracts",
+    "testing",
+    "deploy",
+    "frontend",
+    "wallet",
+    "read-write",
+    "ship"
+  ]
+}

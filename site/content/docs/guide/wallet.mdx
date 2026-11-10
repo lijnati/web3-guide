@@ -1,0 +1,118 @@
+---
+title: Connect a wallet
+description: Build a connect button, avoid hydration errors, detect the wrong chain and switch networks.
+---
+
+## A hydration-safe mount check
+
+The server has no wallet, so it always renders "disconnected". If the browser renders "connected" on its first pass, React reports a **hydration mismatch**. Render wallet state only after mount:
+
+```ts title="web/lib/use-mounted.ts"
+import { useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+
+/** false during SSR and hydration, true afterwards. */
+export function useMounted() {
+  return useSyncExternalStore(subscribe, () => true, () => false);
+}
+```
+
+## The connect button
+
+```tsx title="web/components/wallet-button.tsx"
+"use client";
+
+import { useConnect, useConnection, useConnectors, useDisconnect } from "wagmi";
+import { explainError } from "@/lib/errors";
+import { useMounted } from "@/lib/use-mounted";
+
+export function WalletButton() {
+  const mounted = useMounted();
+  const { address, isConnected } = useConnection();
+  const connectors = useConnectors();
+  const connect = useConnect();
+  const disconnect = useDisconnect();
+
+  // Wallet state only exists in the browser; render a stable placeholder on the server.
+  if (!mounted) return <span>…</span>;
+
+  if (isConnected && address) {
+    return (
+      <button onClick={() => disconnect.mutate()}>
+        {address.slice(0, 6)}…{address.slice(-4)} · Disconnect
+      </button>
+    );
+  }
+
+  const injected = connectors[0];
+  return (
+    <div>
+      <button disabled={connect.isPending} onClick={() => connect.mutate({ connector: injected })}>
+        {connect.isPending ? "Check your wallet…" : "Connect wallet"}
+      </button>
+      {connect.error && (
+        <p role="alert">
+          {/no provider|not found/i.test(connect.error.message)
+            ? "No browser wallet found. Install MetaMask."
+            : explainError(connect.error)}
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+`explainError` is defined in [Read & write](/docs/guide/read-write#turn-errors-into-sentences). Add Tailwind classes as you like.
+
+### States to handle
+
+| State | Detect with | Show |
+| --- | --- | --- |
+| Before mount | `!mounted` | A neutral placeholder |
+| Disconnected | `!isConnected` | "Connect wallet" |
+| Waiting for approval | `connect.isPending` | "Check your wallet…" (disabled) |
+| No wallet / rejected | `connect.error` | A one-line explanation |
+| Connected | `isConnected && address` | Short address + Disconnect |
+
+## Wrong chain → switch chain
+
+The user's wallet can be on any network. Compare it with your contract's chain before allowing writes:
+
+```tsx
+import { useConnection, useSwitchChain } from "wagmi";
+import { targetChain } from "@/lib/contract";
+
+const { isConnected, chainId } = useConnection();
+const switchChain = useSwitchChain();
+const wrongChain = mounted && isConnected && chainId !== targetChain.id;
+
+{wrongChain && (
+  <button
+    disabled={switchChain.isPending}
+    onClick={() => switchChain.mutate({ chainId: targetChain.id })}
+  >
+    {switchChain.isPending ? "Check your wallet…" : `Switch to ${targetChain.name}`}
+  </button>
+)}
+```
+
+MetaMask already knows Sepolia and asks the user to confirm. For other chains, wagmi asks the wallet to add the network first.
+
+## Test with MetaMask on your local chain
+
+1. **Add the network:** MetaMask → *Add a network manually*:
+   - RPC URL: `http://127.0.0.1:8545`
+   - Chain ID: `31337`
+   - Currency symbol: `ETH`
+2. **Import a test account:** *Add account → Import account*, then paste the Account #0 private key printed by `npm run node`. It holds 10,000 test ETH.
+3. Run `npm run dev` in `web`, open [localhost:3000](http://localhost:3000) and click **Connect wallet**.
+
+**If it fails:**
+- Nothing happens on click → MetaMask is locked or its popup is hidden. Click the extension icon.
+- "No browser wallet found" → no wallet extension in this browser profile.
+- Hydration error → wallet state was rendered before `mounted` was true, or `ssr: true` is missing from the wagmi config.
+- `useConfig must be used within WagmiProvider` → the component isn't inside `<Providers>`, or its file doesn't start with `"use client"`.
+- `Nonce too high` after restarting the local node → in MetaMask, go to *Settings → Advanced → Clear activity tab data*.
+
+Next: [read and write your contract →](/docs/guide/read-write)

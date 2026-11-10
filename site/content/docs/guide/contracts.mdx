@@ -1,0 +1,206 @@
+---
+title: Write smart contracts
+description: Set up a Hardhat 3 project, configure networks, write Solidity, and compile.
+---
+
+<Steps>
+<Step>
+
+### Create the Hardhat project
+
+**What:** a Node.js project for your contracts, inside `my-dapp/contracts`.
+
+**Why:** Hardhat compiles Solidity, runs a local blockchain, runs tests and deploys. It is an npm package that lives inside the project.
+
+```bash
+mkdir contracts
+cd contracts
+npm init -y
+npm pkg set type=module
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox-viem
+npm install --save-dev @nomicfoundation/hardhat-ignition viem typescript @types/node
+```
+
+`type=module` is required: Hardhat 3 config files and tests are ES modules.
+
+`hardhat-toolbox-viem` bundles the viem integration, test assertions, network helpers and Ignition (the deployment system).
+
+**Expected:** `added N packages` and no `ERR!` lines. `npm warn` lines are fine.
+
+<Callout title="Prefer a wizard?">
+  `npx hardhat --init` generates a similar project interactively. Choose **Hardhat 3** and the **Node Test Runner and Viem** template. The manual steps here produce the same setup with only the files you need.
+</Callout>
+
+</Step>
+<Step>
+
+### Configure Hardhat
+
+```ts title="contracts/hardhat.config.ts"
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import { configVariable, defineConfig } from "hardhat/config";
+
+export default defineConfig({
+  plugins: [hardhatToolboxViemPlugin],
+  solidity: {
+    version: "0.8.28",
+  },
+  networks: {
+    // `npx hardhat node` serves this chain at http://127.0.0.1:8545 (chain id 31337)
+    localhost: {
+      type: "http",
+      chainType: "l1",
+      url: "http://127.0.0.1:8545",
+    },
+    sepolia: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    },
+  },
+});
+```
+
+- **`plugins`:** Hardhat 3 loads plugins only from this array. Importing a plugin without listing it here does nothing, unlike Hardhat 2.
+- **`configVariable(...)`:** a placeholder for a secret. Hardhat resolves it only when you use that network, so compiling and testing need no secrets. You set the real values when you [deploy](/docs/guide/deploy#deploy-to-sepolia).
+
+Add a `tsconfig.json` so editors understand the TypeScript files:
+
+```json title="contracts/tsconfig.json"
+{
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+    "noEmit": true
+  }
+}
+```
+
+Add these scripts to `package.json`:
+
+```json title="contracts/package.json"
+"scripts": {
+  "compile": "hardhat build",
+  "test": "hardhat test",
+  "node": "hardhat node"
+}
+```
+
+</Step>
+<Step>
+
+### Write your contract
+
+Create `contracts/MyContract.sol`. This skeleton shows the building blocks most contracts use: state, a constructor, a read, a write, an event and a custom error. Replace them with your own design from [Plan your dApp](/docs/guide/plan#design-the-interface-first).
+
+```solidity title="contracts/contracts/MyContract.sol"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
+
+contract MyContract {
+    address public immutable owner;
+    uint256 public value;
+
+    event ValueChanged(address indexed by, uint256 newValue);
+
+    error ZeroValue();
+
+    constructor(uint256 initialValue) {
+        owner = msg.sender;
+        value = initialValue;
+    }
+
+    function setValue(uint256 newValue) external {
+        if (newValue == 0) revert ZeroValue();
+        value = newValue;
+        emit ValueChanged(msg.sender, newValue);
+    }
+}
+```
+
+| Solidity | Web2 equivalent |
+| --- | --- |
+| State variables (`value`) | Database columns, stored on-chain permanently |
+| `public` variable | Automatically creates a free read function: `value()` |
+| `external` function | A `POST` endpoint: changes state, costs gas |
+| `view` function | A `GET` endpoint: read-only, free |
+| `msg.sender` | The authenticated user (the address that signed) |
+| `revert CustomError()` | `return 400`: undoes all changes in the call |
+| `event` / `emit` | A log line that frontends and explorers can read |
+| `constructor` | Runs once, at deployment |
+
+</Step>
+<Step>
+
+### Common patterns
+
+**Restrict a function to the owner:**
+
+```solidity
+error NotOwner();
+
+modifier onlyOwner() {
+    if (msg.sender != owner) revert NotOwner();
+    _;
+}
+
+function withdraw() external onlyOwner { /* … */ }
+```
+
+**Accept ETH:**
+
+```solidity
+mapping(address => uint256) public paid;
+
+event Paid(address indexed from, uint256 amount);
+
+function pay() external payable {
+    require(msg.value > 0, "Send some ETH");
+    paid[msg.sender] += msg.value;
+    emit Paid(msg.sender, msg.value);
+}
+```
+
+**Store per-user data:** use `mapping(address => YourType)`. Mappings can't be iterated, so if the frontend needs to list every entry, also keep an array or emit events.
+
+**Tokens and NFTs:** don't write ERC-20 or ERC-721 from scratch. Install [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts) (`npm install @openzeppelin/contracts`) and inherit from their audited implementations.
+
+<Callout type="warn" title="Keep it small">
+  Every line of a contract is public, permanent and costs gas to deploy. Return arrays only when they stay small. For large lists, paginate or let the frontend read events.
+</Callout>
+
+</Step>
+<Step>
+
+### Compile
+
+```bash
+npm run compile
+```
+
+**Expected:**
+
+```text
+Compiled 1 Solidity file with solc 0.8.28 (evm target: cancun)
+```
+
+Hardhat downloads the compiler on the first run. The output goes to `artifacts/`. The file `artifacts/contracts/MyContract.sol/MyContract.json` contains the **ABI** your frontend will need.
+
+**If it fails:**
+- `ParserError` / `DeclarationError` → a Solidity typo. The error shows `file:line:column`.
+- `Cannot find module ... hardhat-toolbox-viem` → you're outside the `contracts` folder, or the install step didn't finish.
+- `require() of ES Module` → `"type": "module"` is missing from `package.json`.
+- A version error → the `pragma` line and `solidity.version` in the config must be compatible.
+
+Add `artifacts`, `cache` and `types` to `.gitignore`. They're generated.
+
+</Step>
+</Steps>
+
+Next: [test your contract →](/docs/guide/testing)

@@ -1,0 +1,174 @@
+---
+title: Read & write the contract
+description: Read contract state, send transactions, track them to confirmation, explain errors, and refresh data.
+---
+
+## Read: free, no wallet needed
+
+```tsx
+import { useReadContract } from "wagmi";
+import { contractAddress, myContract } from "@/lib/contract";
+
+const value = useReadContract({
+  ...myContract,
+  functionName: "value",
+  query: { enabled: Boolean(contractAddress) },
+});
+
+value.data;       // typed from your ABI, here a bigint
+value.isLoading;  // first load
+value.isFetching; // any refetch
+value.error;      // RPC down, wrong address, wrong chain…
+value.refetch();  // read again
+```
+
+**With arguments**, pass `args`. If an argument isn't ready yet, disable the query:
+
+```tsx
+const { address } = useConnection();
+
+const balance = useReadContract({
+  ...myContract,
+  functionName: "balanceOf", // any function in your ABI that takes an address
+  args: address ? [address] : undefined,
+  query: { enabled: Boolean(address) },
+});
+```
+
+Contract numbers are `bigint`. Display them with `.toString()`, or with viem's `formatEther` / `formatUnits` for token amounts.
+
+## Write: two separate waits
+
+A write waits twice: for **the user** to approve in the wallet, then for **the network** to mine the transaction. Each wait has its own hook:
+
+```tsx
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { contractAddress, myContract, targetChain } from "@/lib/contract";
+
+// 1. Ask the wallet to sign and send. Resolves to a transaction hash.
+const write = useWriteContract();
+
+// 2. Wait for that hash to be mined.
+const receipt = useWaitForTransactionReceipt({
+  hash: write.data,
+  chainId: targetChain.id,
+});
+
+function onSubmit(event: FormEvent) {
+  event.preventDefault();
+  write.reset(); // clear the previous attempt's error or hash
+  write.mutate(
+    { ...myContract, address: contractAddress!, functionName: "setValue", args: [BigInt(input)] },
+    { onSuccess: () => setInput("") }, // the wallet approved and the tx was sent
+  );
+}
+```
+
+**Why `address: contractAddress!`:** `myContract.address` is `undefined` until the env var is set. Render an early "not configured" message in that case, so by the time a write happens the address is defined.
+
+**Sending ETH** with a `payable` function: add `value: parseEther("0.01")` (import `parseEther` from `viem`) to the `mutate` arguments.
+
+## Map every state to the UI
+
+| Phase | Condition | Button | Message |
+| --- | --- | --- | --- |
+| Idle | nothing pending | **Set value** | — |
+| Waiting for wallet | `write.isPending` | *Confirm in wallet…* (disabled) | — |
+| Mining | `receipt.isLoading` | *Waiting for block…* (disabled) | Hash or explorer link |
+| Confirmed | `receipt.isSuccess` | **Set value** | "Confirmed." |
+| Rejected / reverted | `write.error ?? receipt.error` | **Set value** | `explainError(error)` |
+
+```tsx
+const busy = write.isPending || receipt.isLoading;
+
+<button type="submit" disabled={busy}>
+  {write.isPending ? "Confirm in wallet…" : receipt.isLoading ? "Waiting for block…" : "Set value"}
+</button>
+```
+
+Link to the explorer while the transaction is mining:
+
+```tsx
+const url = `${targetChain.blockExplorers?.default.url}/tx/${write.data}`;
+```
+
+Sepolia has an explorer. The local Hardhat chain doesn't, so show the raw hash there.
+
+## Refresh after confirmation
+
+A confirmed receipt means the chain state changed, so read it again:
+
+```tsx
+const { refetch } = value;
+useEffect(() => {
+  if (receipt.isSuccess) refetch();
+}, [receipt.isSuccess, refetch]);
+```
+
+Refetch after `receipt.isSuccess`, **not** after `write.data`. The hash arrives before the block is mined, so reading then returns old data.
+
+## Turn errors into sentences
+
+viem errors are nested. `error.walk()` searches the chain of errors for a specific type:
+
+```ts title="web/lib/errors.ts"
+import { BaseError, ContractFunctionRevertedError, UserRejectedRequestError } from "viem";
+
+/** Turns wallet/RPC/contract errors into one human sentence. */
+export function explainError(error: unknown): string {
+  if (!(error instanceof BaseError)) return "Something went wrong. Check the console.";
+
+  if (error.walk((e) => e instanceof UserRejectedRequestError)) {
+    return "You rejected the request in your wallet.";
+  }
+
+  const revert = error.walk((e) => e instanceof ContractFunctionRevertedError);
+  if (revert instanceof ContractFunctionRevertedError) {
+    // Map your contract's custom errors to friendly text here.
+    const messages: Record<string, string> = {
+      ZeroValue: "The value must be greater than zero.",
+    };
+    const name = revert.data?.errorName;
+    return (name && messages[name]) ?? `The contract reverted: ${name ?? revert.reason ?? revert.shortMessage}`;
+  }
+
+  if (/insufficient funds/i.test(error.message)) {
+    return "Not enough ETH to pay for gas. Get Sepolia ETH from a faucet.";
+  }
+  return error.shortMessage;
+}
+```
+
+Add an entry to `messages` for each custom error in your contract.
+
+**Where reverts appear:** `useWriteContract` hands the transaction to the wallet, which estimates gas first. If the call would revert, the estimate fails and the decoded custom error arrives in `write.error`. MetaMask may also warn the user. `receipt.error` covers the rarer case where the transaction was sent and then reverted on-chain because state changed in between.
+
+<Callout title="Optional: catch reverts before the wallet opens">
+  `useSimulateContract` with the same arguments returns the revert reason while the user is still typing. Disable the button while `simulate.error` is set. It costs one extra RPC call per input change.
+</Callout>
+
+## Hide stale messages
+
+Show transaction status only while a wallet is connected. Otherwise, the last error stays on screen after the user disconnects:
+
+```tsx
+{mounted && isConnected && error && <p role="alert">{explainError(error)}</p>}
+```
+
+## Check every state before you ship
+
+| Do this | Expect |
+| --- | --- |
+| Open the app with no wallet connected | Reads load; writes ask you to connect |
+| Put the wallet on another network | A "Switch to …" button |
+| Start a write, then **Reject** in the wallet | "You rejected the request in your wallet." |
+| Approve a write | *Confirm in wallet…* → *Waiting for block…* → confirmed, and data refreshes |
+| Trigger one of your contract's rules | Your friendly custom-error message |
+| Disconnect | No stale transaction message |
+
+**If it fails:**
+- Reads fail with `returned no data ("0x")` → there's no contract at that address on that chain. Check `NEXT_PUBLIC_CONTRACT_ADDRESS` and `NEXT_PUBLIC_CHAIN_ID`, then restart `npm run dev`.
+- `functionName` type error → the ABI is stale. Compile and run the export script again.
+- The UI shows old data after a write → you refetched before the receipt arrived.
+
+Next: [ship it →](/docs/guide/ship)
