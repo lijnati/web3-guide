@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SkillInstall } from '@/components/skill-install';
 
 const blocks = [
+  { href: '/docs/guide/init', title: 'Initialize', body: 'Create the project folder, Git repo and contracts/web layout.' },
   { href: '/docs/guide/plan', title: 'Plan', body: 'Decide what belongs on-chain and design the contract’s functions.' },
   { href: '/docs/guide/contracts', title: 'Write contracts', body: 'Set up Hardhat 3 and write Solidity with events and custom errors.' },
   { href: '/docs/guide/testing', title: 'Test', body: 'Cover every rule with node:test and viem before spending gas.' },
@@ -49,7 +50,7 @@ export default function HomePage() {
               Start with the basics
             </Link>
             <Link
-              href="/docs/guide/plan"
+              href="/docs/guide/init"
               className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-fd-accent ${focus}`}
             >
               Go straight to building
@@ -62,7 +63,7 @@ export default function HomePage() {
       <section aria-labelledby="chain-title" className="border-t py-16">
         <div className="mb-10 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <h2 id="chain-title" className="text-2xl font-semibold tracking-tight">
-            Eight blocks from idea to live dApp
+            Nine blocks from idea to live dApp
           </h2>
           <p className="text-sm text-fd-muted-foreground">Each block builds on the one before it.</p>
         </div>

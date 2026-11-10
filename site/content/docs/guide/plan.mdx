@@ -1,6 +1,6 @@
 ---
 title: Plan your dApp
-description: Decide what belongs on-chain, design the contract's interface, and set up the project layout.
+description: Decide what belongs on-chain, and design the contract's interface.
 ---
 
 A dApp is cheap to change in the frontend and expensive to change in the contract. Ten minutes of planning saves redeploys.
@@ -37,64 +37,5 @@ Also decide:
 - **Who may call each write?** Anyone, only the owner, or only some addresses.
 - **What should revert?** Each rule becomes a custom error and a test.
 - **What does the constructor need?** Initial values, an owner, token names and so on.
-
-## Project layout
-
-Keep the contracts and the frontend in sibling folders. Each has its own dependencies:
-
-<Files>
-  <Folder name="my-dapp" defaultOpen>
-    <Folder name="contracts" defaultOpen>
-      <Folder name="contracts">
-        <File name="MyContract.sol" />
-      </Folder>
-      <Folder name="test">
-        <File name="MyContract.ts" />
-      </Folder>
-      <Folder name="ignition">
-        <Folder name="modules">
-          <File name="MyContract.ts" />
-        </Folder>
-      </Folder>
-      <Folder name="scripts">
-        <File name="export-abi.mjs" />
-      </Folder>
-      <File name="hardhat.config.ts" />
-      <File name="package.json" />
-    </Folder>
-    <Folder name="web" defaultOpen>
-      <Folder name="app">
-        <File name="layout.tsx" />
-        <File name="providers.tsx" />
-        <File name="page.tsx" />
-      </Folder>
-      <Folder name="components" />
-      <Folder name="lib">
-        <File name="wagmi.ts" />
-        <File name="contract.ts" />
-        <File name="myContractAbi.ts" />
-        <File name="errors.ts" />
-      </Folder>
-      <File name=".env.local" />
-      <File name="package.json" />
-    </Folder>
-  </Folder>
-</Files>
-
-```bash
-mkdir my-dapp
-cd my-dapp
-git init
-```
-
-## How the pieces connect
-
-```text
- contracts/MyContract.sol ──build──▶ ABI ──export──▶ web/lib/myContractAbi.ts ─┐
-            │                                                                   ├──▶ wagmi hooks
-            └──deploy──▶ contract address ──▶ web/.env.local ───────────────────┘
-```
-
-The frontend needs exactly two facts about your contract: its **ABI** (which functions exist) and its **address** (where it lives). If either is out of date, nothing works. Each time you change the contract, export the ABI again and update the address.
 
 Next: [write your contracts →](/docs/guide/contracts)

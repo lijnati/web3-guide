@@ -1,0 +1,88 @@
+---
+title: Initialize the project
+description: Create the project folder, start a Git repository, and learn the layout the rest of the guide builds.
+---
+
+Every later page adds files to one root folder. Create it once here, so contracts and frontend stay side by side.
+
+## Project layout
+
+Keep the contracts and the frontend in sibling folders. Each has its own dependencies:
+
+<Files>
+  <Folder name="my-dapp" defaultOpen>
+    <Folder name="contracts" defaultOpen>
+      <Folder name="contracts">
+        <File name="MyContract.sol" />
+      </Folder>
+      <Folder name="test">
+        <File name="MyContract.ts" />
+      </Folder>
+      <Folder name="ignition">
+        <Folder name="modules">
+          <File name="MyContract.ts" />
+        </Folder>
+      </Folder>
+      <Folder name="scripts">
+        <File name="export-abi.mjs" />
+      </Folder>
+      <File name="hardhat.config.ts" />
+      <File name="package.json" />
+    </Folder>
+    <Folder name="web" defaultOpen>
+      <Folder name="app">
+        <File name="layout.tsx" />
+        <File name="providers.tsx" />
+        <File name="page.tsx" />
+      </Folder>
+      <Folder name="components" />
+      <Folder name="lib">
+        <File name="wagmi.ts" />
+        <File name="contract.ts" />
+        <File name="myContractAbi.ts" />
+        <File name="errors.ts" />
+      </Folder>
+      <File name=".env.local" />
+      <File name="package.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+You don't create these files now. [Write contracts](/docs/guide/contracts) sets up `contracts/` and [Frontend](/docs/guide/frontend) sets up `web/`.
+
+## Create the folder and repository
+
+```bash
+mkdir my-dapp
+cd my-dapp
+git init
+```
+
+Add a `.gitignore` before anything else, so secrets and generated files never reach Git:
+
+```text title="my-dapp/.gitignore"
+node_modules
+.env*
+.next
+artifacts
+cache
+types
+```
+
+**Expected:** `Initialized empty Git repository in .../my-dapp/.git/`.
+
+<Callout type="warn" title="Never commit keys">
+  A private key pushed to a public repository is drained within minutes. `.env*` in `.gitignore` keeps `.env.local` out, and Hardhat keeps its own secrets outside the project.
+</Callout>
+
+## How the pieces connect
+
+```text
+ contracts/MyContract.sol ──build──▶ ABI ──export──▶ web/lib/myContractAbi.ts ─┐
+            │                                                                   ├──▶ wagmi hooks
+            └──deploy──▶ contract address ──▶ web/.env.local ───────────────────┘
+```
+
+The frontend needs exactly two facts about your contract: its **ABI** (which functions exist) and its **address** (where it lives). If either is out of date, nothing works. Each time you change the contract, export the ABI again and update the address.
+
+Next: [plan your dApp →](/docs/guide/plan)
