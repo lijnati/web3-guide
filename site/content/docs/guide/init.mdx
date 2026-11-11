@@ -145,17 +145,32 @@ Open [localhost:3000](http://localhost:3000). You should see the Next.js starter
 
 ## What you have now
 
-```text
-my-dapp/
-├── .gitignore
-├── contracts/     Hardhat: the smart contract
-│   ├── hardhat.config.ts
-│   ├── tsconfig.json
-│   └── package.json
-└── web/           Next.js: the website
-    ├── app/
-    └── package.json
-```
+Click a folder to open it:
+
+<Files>
+  <Folder name="my-dapp" defaultOpen>
+    <File name=".gitignore" />
+    <Folder name="contracts">
+      <File name="hardhat.config.ts" />
+      <File name="tsconfig.json" />
+      <File name="package.json" />
+    </Folder>
+    <Folder name="web">
+      <Folder name="app">
+        <File name="layout.tsx" />
+        <File name="page.tsx" />
+        <File name="globals.css" />
+      </Folder>
+      <Folder name="public" />
+      <File name="next.config.ts" />
+      <File name="tsconfig.json" />
+      <File name="package.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+- **`contracts/`**: Hardhat, the smart contract.
+- **`web/`**: Next.js, the website.
 
 The next pages add the contract, its tests and deploy files to `contracts/`, and the wallet and contract code to `web/`.
 
