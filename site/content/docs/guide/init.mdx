@@ -151,6 +151,15 @@ Click a folder to open it:
   <Folder name="my-dapp" defaultOpen>
     <File name=".gitignore" />
     <Folder name="contracts">
+      <Folder name="contracts">
+        <File name="MyContract.sol" />
+      </Folder>
+      <Folder name="test">
+        <File name="MyContract.ts" />
+      </Folder>
+      <Folder name="scripts">
+        <File name="export-abi.mjs" />
+      </Folder>
       <File name="hardhat.config.ts" />
       <File name="tsconfig.json" />
       <File name="package.json" />
@@ -161,6 +170,11 @@ Click a folder to open it:
         <File name="page.tsx" />
         <File name="globals.css" />
       </Folder>
+      <Folder name="lib">
+        <File name="myContractAbi.ts" />
+        <File name="contract.ts" />
+        <File name="wagmi.ts" />
+      </Folder>
       <Folder name="public" />
       <File name="next.config.ts" />
       <File name="tsconfig.json" />
@@ -169,8 +183,10 @@ Click a folder to open it:
   </Folder>
 </Files>
 
-- **`contracts/`**: Hardhat, the smart contract.
-- **`web/`**: Next.js, the website.
+- **`contracts/`**: Hardhat, the smart contract. `contracts/` holds the Solidity code, `test/` the tests, `scripts/` helper scripts.
+- **`web/`**: Next.js, the website. `lib/` holds the contract ABI and the wagmi setup.
+
+The `.sol`, test, script and `lib/` files don't exist yet. The next pages add them.
 
 The next pages add the contract, its tests and deploy files to `contracts/`, and the wallet and contract code to `web/`.
 
